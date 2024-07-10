@@ -1,4 +1,4 @@
-import dotenv from "dotenv";   // package that loads environment variables from ".env" file to "process.env"
+import dotenv from "dotenv";   // package loads environment variables from ".env" file to "process.env"
 import { connectDB } from "./db/index.js";
 import {app} from "./app.js";
 

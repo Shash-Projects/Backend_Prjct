@@ -48,8 +48,10 @@ const userSchema = new mongoose.Schema(
 // Password Encryption
 // do not use arrow func in callback
 // it does not give access to "this"
+
+//"pre" hook allows us to run a function before an op occurs
 userSchema.pre("save", async function(next){
-    // password must be hashed only when pssd field is modified
+    // password must be hashed only when pswd field is modified
     if(this.isModified("password")){
         this.password = bcrypt.hash(this.password, 10);
         next();
@@ -58,7 +60,7 @@ userSchema.pre("save", async function(next){
 })
 
 // Pswd verification 
-// Creating a custom method
+// Creating a custom method of our own
 userSchema.methods.isPasswordCorrect() = async function(){
     return await bcrypt.compare(password, this.password);
 }

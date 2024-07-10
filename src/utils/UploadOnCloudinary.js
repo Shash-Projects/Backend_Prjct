@@ -7,6 +7,7 @@ cloudinary.config({
     api_secret: process.env.API_SECRET
 })
 
+// We temporarily store data in db(localFilePath) before sending it to cloudinary
 const uploadOnCloudinary = async (localFilePath)=>{
 
     try {

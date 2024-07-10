@@ -10,7 +10,7 @@ class HandleError extends Error{
         this.data= null;
         this.success = false; //do not want to handle success
         this.errors = errors;
-        this,message= message;
+        this.message= message;
 
         // Code provides stack trace for easier debugging
         if(stack){

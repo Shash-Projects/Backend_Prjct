@@ -8,7 +8,7 @@ cloudinary.config({
 })
 
 // We temporarily store data in db(localFilePath) before sending it to cloudinary
-const uploadOnCloudinary = async (localFilePath)=>{
+const UploadOnCloudinary = async (localFilePath)=>{
 
     try {
         if(!localFilePath) return null;
@@ -16,11 +16,13 @@ const uploadOnCloudinary = async (localFilePath)=>{
         const response = await cloudinary.uploader.upload(localFilePath, {
         resource_type: "auto"
     })
-        console.log("File uploaded successfully", response, response.url);
-        return response.url;
+        console.log("File uploaded successfully");
+        fs.unlinkSync(localFilePath);
+        return response;
     } catch (error) {
         //remove the locally saved temporary file as the upload failed
         fs.unlinkSync(localFilePath)
         return null;
     }
 }
+export { UploadOnCloudinary };

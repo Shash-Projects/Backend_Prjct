@@ -19,7 +19,7 @@ const registerUser = asyncWrapper(async (req, res)=>{
             field?.trim === ""
      )
     ){
-        throw new HandleError(400, "All fields are required")
+        throw new HandleError(400, `${field} is a required field`)
     }
 
     // checking if email is in the proper format

@@ -10,6 +10,7 @@ const registerUser = asyncWrapper(async (req, res)=>{
     
     // data in "json" and "form" comes inside body
     const {userName, fullName, email, password} = req.body;
+    console.log(req.body);
 
     // validating whether fields are empty or not
     if (
@@ -37,10 +38,16 @@ const registerUser = asyncWrapper(async (req, res)=>{
 
     // Checking files: multer provides additional option of "files"
     // The 1st prop of array gives us the path
-    const avatarLocalPath = req.files?.avatar[0]?.path;
-    console.log("req.files given by multer: ", req.files);
+    let avatarLocalPath;
+    if(req.files && req.files.avatar && req.files.avatar.length>0){
+        avatarLocalPath = req.files?.avatar[0]?.path;
+   }
+    
 
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    let coverImageLocalPath;
+    if(req.files && req.files.coverImage && req.files.coverImage.length>0){
+         coverImageLocalPath = req.files?.coverImage[0]?.path;
+    }
 
     // Checking that coverImage is not an empty field
     if (!avatarLocalPath) {

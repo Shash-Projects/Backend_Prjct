@@ -14,6 +14,7 @@ const generateAccessAndRefreshTokens = async (userId)=>{
         user.refreshToken = refreshToken;
         // No validation will be required by this nad data will be saved in DB
         await user.save({ validateBeforeSave: false })
+        
         return {accessToken, refreshToken};
 
     } catch (error) {

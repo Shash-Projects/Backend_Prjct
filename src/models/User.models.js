@@ -61,7 +61,7 @@ userSchema.pre("save", async function(next){
 
 // Pswd verification 
 // Creating a custom method of our own
-userSchema.methods.isPasswordCorrect = async function(){
+userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password);
 }
 //Access tokens are short-lived Bearer tokens that clients use to access protected resources.
@@ -73,7 +73,7 @@ userSchema.methods.genAccessTokens = function(){
             userName: this.userName,
             email: this.email
         },
-        process.env.ACESS_TOKEN_SECRET,
+        process.env.ACCESS_TOKEN_SECRET,
         {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }

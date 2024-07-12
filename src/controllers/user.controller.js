@@ -4,6 +4,25 @@ import { HandleResponse } from '../utils/ResponseHandling.js';
 import { User } from '../models/User.models.js';
 import { UploadOnCloudinary } from '../utils/UploadOnCloudinary.js'
 
+const generateAccessAndRefreshTokens = async (userId)=>{
+
+    try {
+        const user = await User.findById(userId);
+        const accessToken = user.genAccessTokens();
+        const refreshToken = user.genRefreshTokens();
+
+        user.refreshToken = refreshToken;
+        // No validation will be required by this nad data will be saved in DB
+        await user.save({ validateBeforeSave: false })
+        return {accessToken, refreshToken};
+
+    } catch (error) {
+        console.log(error);
+        throw new HandleError(500, "Failed to generate access & refresh tokens \n");
+        
+    }
+    
+}
 
 // higher order func accepting another func as parameter
 const registerUser = asyncWrapper(async (req, res)=>{
@@ -86,4 +105,83 @@ const registerUser = asyncWrapper(async (req, res)=>{
     )
 })
 
-export {registerUser}
+const loginUser = asyncWrapper(async(req, res)=>{
+    // user details from req.body
+    const {userName, email, password} = req.body;
+
+    // checking whether fields are empty or not
+    if (!userName && !email ){
+        throw new HandleError(400, "Username or Email is required");
+    }
+
+    // looking for user in db
+    // $or: allow us to search using multiple parameters
+    const user = await User.findOne({
+        $or: [{ userName }, { email }]
+    })
+    if (!user){
+        throw new HandleError(404, "Usr not found");
+    }
+
+    // Validate psed: we use custom method defined in our user model
+    // "User" is a mongoose object, but custom method is defined in our user model
+    const pswdValidity = await user.isPasswordCorrect(password);
+
+    if (!pswdValidity ){
+        throw new HandleError(401, "Incorrect Credentials");
+    }
+
+    // creating access & refresh tokens
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id);
+
+    // the response that we must return
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    //creating options object for cookies
+    const options = {
+
+        // by making these fields true our cookie will only be modifiable thru the server 
+        // otherwise cookies can be modified by frontend as well
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+    .cookie("accessToken",accessToken, options)
+    .cookie("refreshToken",refreshToken, options)
+    .json(
+        new HandleResponse(200, {
+            user: loggedInUser, accessToken, refreshToken       
+        },
+        " User LoggedIn successfully "
+    ))
+})
+
+const logoutUser = asyncWrapper(async(req, res)=>{
+
+    // middleware now allow us access to user in req
+    await User.findByIdAndUpdate(
+        // basis to query
+        req.user._id,
+        {
+            //use the operator to update fields
+            $set: {refreshToken: undefined}
+        },
+        {
+            // so that it returns new response .i.e, updated
+            new: true
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200)
+    .clearCookie("accesToken", options)
+    .clearCookie("refreshToken", options)
+    .json( new HandleResponse(200," Logged Out Successfully "))
+})
+
+export {registerUser, loginUser, logoutUser};

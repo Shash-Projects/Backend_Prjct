@@ -233,4 +233,56 @@ const refreshAccessToken = asyncWrapper(async (req, res)=>{
 
 })
 
-export {registerUser, loginUser, logoutUser, refreshAccessToken};
+const changeCurrentPassword = asyncWrapper(async(req, res)=>{
+    const {oldPassword, newPassword} = req.body;
+    if(!oldPassword && !newPassword){
+        throw new HandleError(401, " Data fields cannot be empty ")
+    }
+
+    // validate the old password
+    const user = await Users.findById(req.user._id);
+
+    const isPswdCorrect = await user.isPasswordCorrect(oldPassword);
+
+    if(!isPswdCorrect){
+        throw new HandleError(400, " Incorrect credentials to change password ")
+    }
+
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(200)
+    .json(
+        new HandleResponse(200, " Passcowrd Changed Successfully ")
+    )
+
+    
+})
+
+const getCurrentUser = asyncWrapper(async(req, res)=>{
+    return res.status(200)   // make use of veifyJwt middleware to accesss user
+    .json(200, req.user, " Current user fetchedd Successfully ")
+})
+
+const updateAccountDetails = asyncWrapper(async(req, res)=>{
+
+    const { userName, email } = req.body;
+
+    if (!userName && !email) {
+        throw new HandleError(401, " Kuch to de change krne k liye ")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {userName: userName, email}
+        },
+        { new: true }
+    ).select("-password -refreshToken")
+
+    return res.status(200)
+    .json( new HandleResponse(200,user, " Details updated successfully "))
+})
+
+export {registerUser, loginUser, logoutUser, refreshAccessToken, 
+        changeCurrentPassword, getCurrentUser, updateAccountDetails };

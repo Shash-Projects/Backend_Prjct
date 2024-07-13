@@ -67,7 +67,7 @@ userSchema.methods.isPasswordCorrect = async function(password){
 //Access tokens are short-lived Bearer tokens that clients use to access protected resources.
 //They contain information about the user and the scope of access
 userSchema.methods.genAccessTokens = function(){
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
             userName: this.userName,
@@ -80,7 +80,7 @@ userSchema.methods.genAccessTokens = function(){
     )
 }
 userSchema.methods.genRefreshTokens = function(){
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
             

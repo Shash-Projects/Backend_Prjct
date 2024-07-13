@@ -26,6 +26,7 @@ export const verifyJwt = asyncWrapper(async(req, res, next)=>{
         // to req to target user while he is logged in
         req.user = user;
         next();
+        
         } catch (error) {
             throw new HandleError(401, error?.message || "Invalid access Token ")
         }

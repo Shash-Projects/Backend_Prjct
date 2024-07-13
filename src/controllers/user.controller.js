@@ -62,6 +62,7 @@ const registerUser = asyncWrapper(async (req, res)=>{
     if(req.files && req.files.avatar && req.files.avatar.length>0){
         avatarLocalPath = req.files?.avatar[0]?.path;
    }
+   // console.log(req.files.avatar)
     
 
     let coverImageLocalPath;
@@ -121,7 +122,7 @@ const loginUser = asyncWrapper(async(req, res)=>{
         $or: [{ userName }, { email }]
     })
     if (!user){
-        throw new HandleError(404, "Usr not found");
+        throw new HandleError(404, "User not found");
     }
 
     // Validate psed: we use custom method defined in our user model
@@ -185,4 +186,51 @@ const logoutUser = asyncWrapper(async(req, res)=>{
     .json( new HandleResponse(200," Logged Out Successfully "))
 })
 
-export {registerUser, loginUser, logoutUser};
+const refreshAccessToken = asyncWrapper(async (req, res)=>{
+
+    // taking data from user cookies
+    const userSideRefreshToken = req.cookies.refreshToken || req.header.refreshToken;
+
+    if(!userSideRefreshToken){
+        throw new HandleError(401, "Client's Refresh token not found")
+    }
+
+    // to target data in DB we need info
+    const decodedToken = jwt.verify(userSideRefreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+    if(decodedToken){
+        const user = await User.findById(decodedToken._id);
+        if(!user){
+            throw new HandleError(401, "Invalid refresh token by client")
+        }
+    }
+    
+    // our user contains refresh token; comparing it with client's
+    if(userSideRefreshToken !== user.refreshToken){
+        throw new HandleError(401, " Client's Token is Expired ")
+    }
+
+    // Validated client and DB token are same;
+    // generate new tokens
+    const { newAccessToken, newRefreshToken} = generateAccessAndRefreshTokens(user._id);
+
+    const options ={
+        httpOnly: true,
+        secure: true
+    }
+
+    res.status(200)
+    .cookie("accessToken", newAccessToken, options)
+    .cookie("refreshToken", newRefreshToken, options)
+    .json(
+        new HandleResponse(200,
+            {
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            }
+            , " Tokens refreshed succesfully ")
+    )
+
+})
+
+export {registerUser, loginUser, logoutUser, refreshAccessToken};

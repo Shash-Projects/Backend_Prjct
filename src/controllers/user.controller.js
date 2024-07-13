@@ -284,5 +284,64 @@ const updateAccountDetails = asyncWrapper(async(req, res)=>{
     .json( new HandleResponse(200,user, " Details updated successfully "))
 })
 
+const updateAvatar = asyncWrapper(async(req, res)=>{
+
+    let avatarLocalPath;
+    if (req.file && req.file.avatar && req.file.avatar.length>0) {
+        avatarLocalPath = req.file.avatar[0].path;
+    }
+
+    if(!avatarLocalPath){
+        throw new HandleError(400, " New avatar could not be received ")
+    }
+
+    const avatar = await UploadOnCloudinary(avatarLocalPath);
+
+    if(!avatar){
+        throw new HandleError(401, " Error while uploading new avatar ")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {$set: { avatar : avatar.url }},
+        { new: true }
+    ).select("-password")
+
+    return res.status(200)
+    .json(
+        new HandleResponse(200, user, " Avatar updated Successfully ")
+    )
+})
+
+const updateCoverImage = asyncWrapper(async(req, res)=>{
+
+    let coverImageLocalPath;
+    if (req.file && req.file.coverImage && req.file.coverImage.length>0) {
+        coverImageLocalPath = req.file.coverImage[0].path;
+    }
+
+    if(!coverImageLocalPath){
+        throw new HandleError(400, " New coverImage could not be received ")
+    }
+
+    const coverImage = await UploadOnCloudinary(coverImageLocalPath);
+
+    if(!coverImage){
+        throw new HandleError(401, " Error while uploading new coverImage ")
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.user._id,
+        {$set: { coverImage : coverImage.url }},
+        { new: true }
+    ).select("-password")
+
+    return res.status(200)
+    .json(
+        new HandleResponse(200, user, " coverImage updated Successfully ")
+    )
+})
+
 export {registerUser, loginUser, logoutUser, refreshAccessToken, 
-        changeCurrentPassword, getCurrentUser, updateAccountDetails };
+        changeCurrentPassword, getCurrentUser, updateAccountDetails,
+        updateAvatar, updateCoverImage };

@@ -2,7 +2,7 @@ import { asyncWrapper} from '../utils/AsyncWrapper.js';
 import { HandleError } from '../utils/ErrorHandling.js';
 import { HandleResponse } from '../utils/ResponseHandling.js';
 import { User } from '../models/User.models.js';
-import { UploadOnCloudinary } from '../utils/UploadOnCloudinary.js'
+import { UploadOnCloudinary, DeleteOnCloudinary } from '../utils/UploadOnCloudinary.js'
 
 const generateAccessAndRefreshTokens = async (userId)=>{
 
@@ -261,7 +261,7 @@ const changeCurrentPassword = asyncWrapper(async(req, res)=>{
 
 const getCurrentUser = asyncWrapper(async(req, res)=>{
     return res.status(200)   // make use of veifyJwt middleware to accesss user
-    .json(200, req.user, " Current user fetchedd Successfully ")
+    .json(new HandleResponse(200, req.user, " Current user fetchedd Successfully "))
 })
 
 const updateAccountDetails = asyncWrapper(async(req, res)=>{
@@ -300,6 +300,11 @@ const updateAvatar = asyncWrapper(async(req, res)=>{
     if(!avatar){
         throw new HandleError(401, " Error while uploading new avatar ")
     }
+    // Deleting previous coverImage from Cloudinary
+    let oldAvatar = req.user.avatar;
+    if(oldAvatar){
+         DeleteOnCloudinary(oldAvatar);
+    }
 
     const user = await User.findByIdAndUpdate(
         req.user._id,
@@ -330,6 +335,12 @@ const updateCoverImage = asyncWrapper(async(req, res)=>{
         throw new HandleError(401, " Error while uploading new coverImage ")
     }
 
+    // Deleting previous coverImage from Cloudinary
+    let oldCoverImage = req.user.coverImage;
+    if(oldCoverImage){
+        DeleteOnCloudinary(oldCoverImage);
+    }
+
     const user = await User.findByIdAndUpdate(
         req.user._id,
         {$set: { coverImage : coverImage.url }},
@@ -342,6 +353,86 @@ const updateCoverImage = asyncWrapper(async(req, res)=>{
     )
 })
 
+const getUserChannelProfile = asyncWrapper(async(req, res)=>{
+
+    // usually we receive such data from parameters of url
+    const {username} = req.params;
+    if(!username?.trim){
+        throw new HandleResponse(400, " Username is missing ")
+    }
+
+    // "aggegate queries" process data records to return computed results
+    // pipelines are stages that data passes thru (layers of filter)
+    const channel = await User.aggregate([
+        {
+            $match: {
+                username: username?.toLowerCase
+            }
+        },
+        {
+            $lookup:{
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup:{
+                from: "subscriptions",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields:{
+                subscribersCount:{
+                    $size: "$subscribers"
+                },
+
+                subscribedToCount:{
+                    $size: "$subscribedTo"
+                },
+
+                isSubscribed: {
+                    $cond: {
+                        if: {
+                            // in operator can look into arrays as well as objects
+                            $in: [req.user?._id, "$subscribers.subscriber"]
+                        },
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            $project:{
+                // values you want to pass on
+                userName: 1,
+                fullName:1,
+                avatar: 1,
+                coverImage: 1,
+                subscribedToCount: 1,
+                subscribersCount:1
+            }
+        }
+    ])
+    if(!channel){
+        throw new HandleError(404, " Channel not found ")
+    };
+
+    console.log(channel);
+
+    return res.status(200)
+    .json( new HandleResponse(200, channel[0], " User Channel fetched successfully "))
+
+
+
+
+})
+
 export {registerUser, loginUser, logoutUser, refreshAccessToken, 
         changeCurrentPassword, getCurrentUser, updateAccountDetails,
-        updateAvatar, updateCoverImage };
+        updateAvatar, updateCoverImage, getUserChannelProfile };

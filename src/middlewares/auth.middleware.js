@@ -8,7 +8,7 @@ export const verifyJwt = asyncWrapper(async(req, res, next)=>{
 
     try {
         // Authorization: Bearer <AccessToken>: this is how it is present in headers
-        const token = req.cookies?.accessToken || req.headers("Authorization").replace("Bearer ", '');
+        const token = req.cookies?.accessToken || req.header("Authorization").replace("Bearer ", '');
         if(!token){
             throw new HandleError(401, "Unauthorised Request")
         }

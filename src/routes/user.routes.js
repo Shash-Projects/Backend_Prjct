@@ -1,5 +1,17 @@
 import {Router} from 'express';
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from '../controllers/user.controller.js';
+import { 
+    changeCurrentPassword, 
+    getCurrentUser, 
+    getUserChannelProfile, 
+    getWatchHistory, 
+    loginUser, 
+    logoutUser, 
+    refreshAccessToken, 
+    registerUser, 
+    updateAccountDetails, 
+    updateAvatar,
+    updateCoverImage } from '../controllers/user.controller.js';
+    
 import { upload } from '../middlewares/Upload.middleware.js';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
 
@@ -29,5 +41,17 @@ router.route("/login").post(loginUser);
 // Secured Route
 router.route("/logout").post( verifyJwt, logoutUser) // using this middleware we included user field in the "req" obj
 router.route("/refresh-token").post(refreshAccessToken)
+router.route("/change-password").post(verifyJwt, changeCurrentPassword);
+router.route("/current-user").get(verifyJwt, getCurrentUser);
+router.route("/update-account").patch(verifyJwt, updateAccountDetails);
+router.route("/update-avatar").patch(verifyJwt, 
+    upload.single({name: "avatar"}), updateAvatar);
+
+router.route("/update-cover-image").patch(verifyJwt, 
+    upload.single("coverImage"), updateCoverImage
+);
+
+router.route("/c/:usrname").get(verifyJwt, getUserChannelProfile);  // taking data from params
+router.route("/watch-history").get(verifyJwt, getWatchHistory)
 
 export default router;

@@ -433,6 +433,59 @@ const getUserChannelProfile = asyncWrapper(async(req, res)=>{
 
 })
 
+const getWatchHistory = asyncWrapper(async(req, res)=>{ 
+    const user = await User.aggregate([
+        {
+            // "req.user._id" returns a string which is converted into id by "mongoose"
+            // all code inside aggregate pipelines is independent of mongoose
+            // therefore, provide actual id
+            $match:{
+                _id: new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup:{
+                from: "videos", // in DB the model name becomes lowerCase and plural
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline:[ // nested pipeline to lookup owner of video's watched
+                {
+                    $lookup:{
+                        from: "users",
+                        localField: "owner",
+                        foreignField: "_id",
+                        as: "owner",          
+                        
+                        pipeline:[
+                            {// we only want relevant info of user to populate owner field
+                                $project: {
+                                    fullName:1,
+                                    userName:1,
+                                    avatar:1
+                                }
+                            }
+                        ]
+                    }
+                    
+                },   // pipelines return array, owner field will be an array
+                {
+                    $addFields: {
+                        owner:{
+                            $first: "$owner" // re-populating owner field with only first element of array
+                        }
+                    }
+                }]
+            }
+        }
+    ])
+
+    return res.status(200)
+    .json( new HandleResponse(200, user.getWatchHistory, " Watch History fetched successfully "))
+
+})
+
 export {registerUser, loginUser, logoutUser, refreshAccessToken, 
         changeCurrentPassword, getCurrentUser, updateAccountDetails,
-        updateAvatar, updateCoverImage, getUserChannelProfile };
+        updateAvatar, updateCoverImage, getUserChannelProfile,
+        getWatchHistory };

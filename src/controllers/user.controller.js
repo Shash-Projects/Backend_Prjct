@@ -287,8 +287,8 @@ const updateAccountDetails = asyncWrapper(async(req, res)=>{
 const updateAvatar = asyncWrapper(async(req, res)=>{
 
     let avatarLocalPath;
-    if (req.file && req.file.avatar && req.file.avatar.length>0) {
-        avatarLocalPath = req.file.avatar[0].path;
+    if (req.file) {
+        avatarLocalPath = req.file.path;
     }
 
     if(!avatarLocalPath){
@@ -321,8 +321,8 @@ const updateAvatar = asyncWrapper(async(req, res)=>{
 const updateCoverImage = asyncWrapper(async(req, res)=>{
 
     let coverImageLocalPath;
-    if (req.file && req.file.coverImage && req.file.coverImage.length>0) {
-        coverImageLocalPath = req.file.coverImage[0].path;
+    if (req.file) {
+        coverImageLocalPath = req.file.path;
     }
 
     if(!coverImageLocalPath){

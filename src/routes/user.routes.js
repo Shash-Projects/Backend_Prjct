@@ -51,7 +51,7 @@ router.route("/update-cover-image").patch(verifyJwt,
     upload.single("coverImage"), updateCoverImage
 );
 
-router.route("/c/:usrname").get(verifyJwt, getUserChannelProfile);  // taking data from params
+router.route("/c/:username").get(verifyJwt, getUserChannelProfile);  // taking data from params
 router.route("/watch-history").get(verifyJwt, getWatchHistory)
 
 export default router;

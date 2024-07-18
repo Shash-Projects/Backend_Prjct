@@ -1,7 +1,7 @@
 import { Router} from 'express';
 import { verifyJwt } from '../middlewares/auth.middleware.js';
 import { upload } from '../middlewares/Upload.middleware.js';
-import { deleteVideo, getVideoById, updateVideoDetails, uploadVideo } from '../controllers/video.controller.js';
+import { deleteVideo, getAllVideosWithSearchAndUploaderInfo, getVideoById, updateVideoDetails, uploadVideo } from '../controllers/video.controller.js';
 
 const router = Router();
 router.use(verifyJwt) // Apply verifyJwt on all routes
@@ -18,7 +18,9 @@ router.route("/").post(verifyJwt,
             maxCount:1
         }
         
-    ]), uploadVideo)
+    ]), uploadVideo);
+
+router.route("/").get(getAllVideosWithSearchAndUploaderInfo);
 
 router.route("/:videoId")
 .patch(upload.single("thumbnail"), updateVideoDetails)

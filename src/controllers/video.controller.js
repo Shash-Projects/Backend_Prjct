@@ -90,6 +90,12 @@ const updateVideoDetails = asyncWrapper(async(req, res)=>{
         return new HandleError(401, " At least one of the field need to be updated ")
     }
 
+    const video = await Video.findById(videoId);
+
+    if(!(req.user._id !== video.owner.toString() )){
+        throw new HandleError(403, " You are not authorised to perform this action ")
+    }
+
     const targetVideo = await Video.findByIdAndUpdate(
         videoId,
         {
@@ -113,6 +119,10 @@ const deleteVideo = asyncWrapper(async(req, res)=>{
     if(!videoId) throw new HandleError(404, " video ID not sent through url ");
 
     // Insert => OWNER- VERIFICAATION
+    const video = await Video.findById(videoId);
+    if(!(req.user._id !== video.owner.toString() )){
+        throw new HandleError(403, " You are not authorised to perform this action ")
+    }
 
     const deletedVideo = await Video.findByIdAndDelete(videoId);
     if (!deletedVideo) {

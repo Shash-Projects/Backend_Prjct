@@ -7,6 +7,7 @@ import { HandleResponse } from "../utils/ResponseHandling.js";
 const createTweet = asyncWrapper(async(req,res)=>{
     const {content} = req.body;
 
+    // Checking for empty data
     if(!content || content.trim() ==="") throw new HandleError(401, " Error: Content is a required field ");
 
     const tweet = await Tweet.create({
@@ -67,7 +68,7 @@ const deleteTweet = asyncWrapper(async(req, res)=>{
     if(!deletedTweet) throw new HandleError(501, " Error: failed to delete the tweet ")
 
     return res.status(200)
-    .json(new HandleResponse(200, deletedTweet, " Tweet deleted successfullt ")) 
+    .json(new HandleResponse(200, deletedTweet, " Tweet deleted successfully ")) 
 
 
 })
@@ -77,12 +78,13 @@ const getUserTweets =asyncWrapper(async(req, res)=>{
     const {userId} = req.params;
     console.log(req.params)
     if(!isValidObjectId(userId)) throw new HandleError(409, " Invalid user id ")
+
+    // gets a list of documents that match filter    
     const userTweets = await Tweet.find({ owner: userId});
     if(!userTweets.length ) throw new HandleError(400, " No tweets found ");
 
     return res.status(200)
     .json(new HandleResponse(200, userTweets, " Tweets fetched successfully "))
-
 
 })
 

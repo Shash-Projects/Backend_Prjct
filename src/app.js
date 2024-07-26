@@ -23,6 +23,7 @@ import userRouter from './routes/user.routes.js'
 import videoRouter from './routes/video.routes.js'
 import subscriptionRouter from './routes/subscription.routes.js'
 import tweetRouter from './routes/tweet.routes.js'
+import commentRouter from './routes/comment.routes.js'
 
 // Earlier we used to define route and controller simultaneously 
 //but now things are segregated, we need o make use of middlewares
@@ -30,5 +31,6 @@ import tweetRouter from './routes/tweet.routes.js'
 //route declaration
 app.use("/api/v1/users", userRouter) // as user goes to /users controll will pas to userRouter 
 app.use("/api/v1/videos", videoRouter);
-app.use("/api/v1/subscriptions", subscriptionRouter)
-app.use("/api/v1/tweets", tweetRouter)
+app.use("/api/v1/subscriptions", subscriptionRouter);
+app.use("/api/v1/tweets", tweetRouter);
+app.use("/api/v1/comments", commentRouter);

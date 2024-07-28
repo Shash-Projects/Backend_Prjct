@@ -26,6 +26,10 @@ const videoSchema = new Schema(
             type: Number,
             default: 0
         },
+        viewers: [{
+            userId: String,
+            lastViewd: Date
+        }],
         isPublished: {
             type: Boolean,
             default: true

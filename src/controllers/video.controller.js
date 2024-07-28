@@ -147,7 +147,27 @@ const getVideoById = asyncWrapper(async(req, res)=>{
         select:"avatar userName fullName"
     }).exec();  //This method executes the query. In Mongoose, most queries are not executed immediately; they build up a chain of commands
 
-    if(!video) new HandleError(402, " Error in finding any such video ")
+    if(!video) new HandleError(402, " Error in finding any such video ");
+
+    // if i don not convert it to string then "viewer" will always remain "undefined"
+    // coz comparing two objects will always return "False"
+    const viewer = await video.viewers.find(v=>v.userId.toString() === req.user._id.toString());
+    
+    if(!viewer || (viewer && (new Date() - new Date(viewer.lastViewed)> 24*60*60*1000))){
+        if(!viewer){
+            video.viewers.push({
+                userId: req.user._id,
+                lastViewed: new Date()
+            });
+            video.views++;
+            
+        }else{
+            viewer.lastViewed = new Date();
+            video.views++;
+        }
+    }
+    await video.save();
+
 
     return res.status(200)
     .json(new HandleResponse(200, video, " Video fetched successfully "))

@@ -30,7 +30,6 @@ const registerUser = asyncWrapper(async (req, res)=>{
     
     // data in "json" and "form" comes inside body
     const {userName, fullName, email, password} = req.body;
-    console.log(req.body);
 
     // validating whether fields are empty or not
     if (

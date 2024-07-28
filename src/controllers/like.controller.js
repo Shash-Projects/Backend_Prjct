@@ -83,9 +83,9 @@ const getLikedVideos = asyncWrapper(async(req, res)=>{
         video: {$exists: true} //helps to avoid cases where the video field might be missing or null.
         })
     .populate({
-        path: video,
+        path: "video",
         populate: {
-            path: owner,
+            path: "owner",
             select: "userName, fullName, avatar"
         }
     })
